@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+<<<<<<< HEAD
 # from selenium import webdriver
 # from selenium.webdriver.chrome.options import Options
 import time
@@ -7,6 +8,18 @@ import csv
 import json
 
 def get_news_info(url, base_url="https://www.investing.com"):
+=======
+import json
+
+<<<<<<< HEAD
+=======
+import requests
+from bs4 import BeautifulSoup
+import json
+
+>>>>>>> 6b58b6645802f4db05fe5e8275ad2449b3ac7bd5
+def get_news_info(url):
+>>>>>>> 76cc47023b6f8fbb3049c1eafb94a6979bc628f0
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         response = requests.get(url, headers=headers)
@@ -56,8 +69,17 @@ def get_news_info(url, base_url="https://www.investing.com"):
 # 여러 페이지의 뉴스 정보를 저장할 리스트
 all_news_info = []
 
+<<<<<<< HEAD
 # 각 페이지에 대해 뉴스 정보를 가져와서 리스트에 추가
 for page_number in range(4, 6):  # 페이지 범위 수정
+=======
+# 1부터 2까지의 페이지에 대해 뉴스 정보를 가져와서 리스트에 추가
+<<<<<<< HEAD
+for page_number in range(3, 20):
+=======
+for page_number in range(1, 10):
+>>>>>>> 6b58b6645802f4db05fe5e8275ad2449b3ac7bd5
+>>>>>>> 76cc47023b6f8fbb3049c1eafb94a6979bc628f0
     url = f"https://www.investing.com/news/cryptocurrency-news/{page_number}"
     try:
         news_info = get_news_info(url)
@@ -76,7 +98,11 @@ print(f"\n총 {len(all_news_info)}개의 뉴스 정보 크롤링 완료")
 
 # 뉴스 정보를 JSON 파일로 저장
 result_data = {'news_info': all_news_info}
+<<<<<<< HEAD
 with open('all_crypto_news_info.json', 'w', encoding='utf-8') as json_file:
+=======
+with open('2all_cryptocurrency_news_info.json', 'w', encoding='utf-8') as json_file:
+>>>>>>> 76cc47023b6f8fbb3049c1eafb94a6979bc628f0
     json.dump(result_data, json_file, ensure_ascii=False, indent=4)
 
 print("뉴스 정보가 성공적으로 저장되었습니다.")

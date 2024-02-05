@@ -1,19 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+# from selenium import webdriver
+# from selenium.webdriver.chrome.options import Options
 import time
 import csv
 import json
 
-import requests
-from bs4 import BeautifulSoup
-import json
-
-def get_news_info(url):
+def get_news_info(url, base_url="https://www.investing.com"):
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # 오류가 발생하면 예외를 발생시킴
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
         news_info_list = []
@@ -25,40 +22,61 @@ def get_news_info(url):
             # largeTitle 클래스 내에서 모든 .title과 .date를 찾음
             titles = element.select('.title')
             dates = element.select('.date')
-
+            
             # 뉴스 제목과 올라온 시간이 있는 경우에만 결과 리스트에 추가
             for title, date in zip(titles, dates):
                 title_text = title.text.strip()
                 date_text = date.text.strip()
-                news_info_list.append({'title': title_text, 'time': date_text})
+
+                # 상세 페이지 URL 구성
+                news_url = base_url + title['href']
+
+                # 상세 페이지로 이동하여 본문 내용과 업로드 시간을 크롤링
+                news_response = requests.get(news_url, headers=headers)
+                news_soup = BeautifulSoup(news_response.text, 'html.parser')
+                
+                content_elements = news_soup.select('.WYSIWYG.articlePage > p')
+                content_text = '\n'.join([content.text.strip() for content in content_elements])
+
+                time_element = news_soup.select_one('.contentSectionDetails > span')
+                time_text = time_element.text.strip() if time_element else None
+
+                news_info_list.append({
+                    'title': title_text,
+                    'time': time_text,
+                    'content': content_text
+                })
 
         return news_info_list
 
     except Exception as e:
-        # 에러가 발생했을 때 현재 페이지 번호를 출력하고 예외를 다시 발생시킴
         print(f"에러가 발생했습니다. 페이지: {url}")
         raise e
 
 # 여러 페이지의 뉴스 정보를 저장할 리스트
 all_news_info = []
 
-# 1부터 2까지의 페이지에 대해 뉴스 정보를 가져와서 리스트에 추가
-for page_number in range(1, 10):
+# 각 페이지에 대해 뉴스 정보를 가져와서 리스트에 추가
+for page_number in range(4, 6):  # 페이지 범위 수정
     url = f"https://www.investing.com/news/cryptocurrency-news/{page_number}"
     try:
         news_info = get_news_info(url)
         all_news_info.extend(news_info)
+        
+        # 너무 빠른 요청으로 인한 서버 부하를 방지하기 위해 대기
+        time.sleep(1)
+
+        print(f"페이지 {page_number} 크롤링 완료")
     except Exception as e:
-        # 에러가 발생했을 때 현재 페이지 번호를 출력하고 반복문을 종료
         print(f"에러가 발생하여 프로그램을 종료합니다. 페이지: {page_number}")
         break
 
-# 총 몇개의 데이터를 가져왔는지 출력
-print(f"\n총 {len(all_news_info)}개의 뉴스 정보 크롤링 완료 ")
+# 총 몇 개의 데이터를 가져왔는지 출력
+print(f"\n총 {len(all_news_info)}개의 뉴스 정보 크롤링 완료")
 
 # 뉴스 정보를 JSON 파일로 저장
 result_data = {'news_info': all_news_info}
-with open('all_cryptocurrency_news_info.json', 'w', encoding='utf-8') as json_file:
+with open('all_crypto_news_info.json', 'w', encoding='utf-8') as json_file:
     json.dump(result_data, json_file, ensure_ascii=False, indent=4)
 
 print("뉴스 정보가 성공적으로 저장되었습니다.")
